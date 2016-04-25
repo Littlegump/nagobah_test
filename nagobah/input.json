@@ -1,0 +1,54 @@
+{
+  "tasks": [
+    {
+      "soft_timeout": 30,
+      "name": "1",
+      "hard_timeout": 20,
+      "hostname": "slave1",
+      "command": "echo 'mason/task1.txt'"
+    },
+    {
+      "soft_timeout": 1,
+      "hard_timeout": 1,
+      "name": "2",
+      "command": "echo 'mason/task1.txt'",
+      "hostname": "slave2"
+    },
+    {
+      "name": "3",
+      "hostname": "slave3",
+      "command": "echo 'mason/task1.txt'"
+    },
+    {
+      "name": "5",
+      "hostname": "slave5",
+      "command": "echo \" task5 succeed at `date +%Y%m%d%H%M%S`\""
+    },
+    {
+      "name": "6",
+      "hostname": "slave6",
+      "command": "echo \" task6 succeed at `date +%Y%m%d%H%M%S`\""
+    },
+    {
+      "name": "7",
+      "hostname": "slave7",
+      "command": "cho \" task7 succeed at `date +%Y%m%d%H%M%S`\\n\\n\" >> /home/mason/result_all.txt"
+    },
+    {
+      "name": "4",
+      "hostname": "slave4",
+      "command": "echo 'mason/task1.txt'"
+    }
+  ],
+  "notes": "1  2  3  4   5 6 7, split 1234567",
+  "name": "error tasks--------",
+  "dependencies": {
+    "1":["2"],
+    "2":["3"],
+    "3":["4"],
+    "4":["5"],
+    "5":["6"],
+    "6":["7"]
+  },
+  "cron_schedule": "5 * * * *"
+}

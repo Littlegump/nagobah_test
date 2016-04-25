@@ -1,15 +1,22 @@
 {
   "tasks": [
     {
-      "soft_timeout": 1,
+      "soft_timeout": 30,
+      "name": "cut",
+      "hard_timeout": 20,
+      "hostname": "slave1",
+      "command": "echo 'mason/task1.txt'"
+    },
+    {
+      "soft_timeout": null, 
       "name": "copy",
       "hard_timeout": 2,
-      "hostname": "slave1",
+      "hostname": "slav1",
       "command": "echo 'task1.txt'"
     },
     {
-      "soft_timeout": 1, 
-      "hard_timeout": 2,
+      "soft_timeout": 1,
+      "hard_timeout": 1,
       "name": "print",
       "command": "echo 1",
       "hostname": "slave1"
@@ -21,7 +28,7 @@
     }
   ],
   "notes": "splist3",
-  "name": "asdf",
+  "name": "spliet",
   "dependencies": {
     "copy":[
       "print"
@@ -30,5 +37,5 @@
       "end"
     ]
   },
-  "cron_schedule": "* * * * *"
+  "cron_schedule": "5 * * * *"
 }
