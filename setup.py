@@ -7,7 +7,7 @@ from setuptools import find_packages
 setup(
         name = "nagobah",
         packages = find_packages(),
-        version = "0.0.6",
+        version = "0.0.8",
         author = "xuanxuan",
         author_email = "13060404095@163.com",
         url = "https://github.com/littlegump/nagobah.git",

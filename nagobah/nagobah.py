@@ -50,8 +50,8 @@ def check_validation(
     check_job_item_if_null(data_module, args)
     check_if_str(data_module, ['name', 'notes', 'cron_schedule'])
 
-    # 检查tasks类型是否为列表
-    check_if_list(data_module,['tasks'])
+    # 检查tasks类型是否为列表,并且列表内的每个元素必须是字典"""
+    check_if_list_dict(data_module,['tasks'])
 
     # check cron_syntax
     check_schedule_syntax(data_module)
@@ -91,29 +91,53 @@ def check_validation(
     check_job_name_overwrite(data_module)
 
 def main():
+    flag_i = 0
+    flag_h = 0
+    flag_t = 0
+
     try:
         opts, args = getopt(
-            sys.argv[1:], 'i:t:h:',
+            sys.argv[1:], 'i:t:H:h',
             [
                 'input-file=',
                 'task-to-distribute=',
                 'host-file='
+                'help'
                 ])
     except GetoptError as err:
         print str(err)
         usage()
-        sys.exit(2)
+        sys.exit(1)
 
+
+    task_string = u""
     for opt, value in opts:
 
         if opt in ("--input-file", "-i"):
             input_file = value
-        elif opt in ("--host-file", "-h"):
+            flag_i = 1
+        elif opt in ("--host-file", "-H"):
             distri_file = value
+            flag_h = 1
         elif opt in ("--task-to-distribute", "-t"):
             task_string = value
+            flag_t = 1
+        elif opt in ("--help", "-h"):
+            usage()
+            sys.exit(0)
         else:
             assert False, "unhandled option"
+
+    print "Error: unkown option!"
+    if flag_i != 1:
+        print "Error: 命令格式错误，必须使用\"-i\"指定模板文件."
+        print "Use \"nagobah -h\" for more help!"
+        sys.exit(1)
+
+    if flag_h != 1:
+        print "Error: 命令格式错误，必须使用\"-H\"指定分布主机名."
+        print "Use \"nagobah -h\" for more help!"
+        sys.exit(1)
 
     try:
         inputfile = open(input_file, 'rb')
@@ -138,6 +162,7 @@ def main():
 
     #  获取要分布的主机名的列表
     host_list = trans_file_to_list(distri_file)
+
     #host_list = [unicode(x, 'utf-8') for x in host_list]
     host_iter = range(len(host_list))
 

@@ -23,14 +23,13 @@
   "notes": "splist3",
   "name": "asdf",
   "dependencies": {
-    "end":[
+    "copy":[
       "print"
     ],
     "print":[
-      "copy"
-    ]
-
-
+      "end"
+    ],
+    "end":[]
   },
   "cron_schedule": "* * * * *"
 }

@@ -5,6 +5,8 @@ import sys
 import requests
 import os
 import pymongo
+import random
+import string
 from json import dump, load, loads
 
 
@@ -20,8 +22,12 @@ def check_job_name_overwrite(data_module):
 
         choice = raw_input("\"Y\" to keep go,\"n\" to stop and quit:")
 
-        while choice.lower() != "y" and choice.lower() != "n":
-            choice = raw_input("\"Y\" to keep go,\"n\" to stop and quit:")
+        try:
+            while choice.lower() != "y" and choice.lower() != "n":
+                choice = raw_input("\"Y\" to keep go,\"n\" to stop and quit:")
+        except KeyboardInterrupt, err:
+            print str(err)
+            sys.exit(0)
 
         if choice.lower() == "n":
             print "quiting..."
@@ -72,6 +78,48 @@ def check_dependencies_valid(data_module,input_file,module_task_list):
                 for i in set_1:
                     print u"u'" + i + u"' ",
                 sys.exit(1)
+        try:
+            session_check = requests.session()
+            try_to_login(session_check)
+            job_tmpname = randomword(10)
+            try_to_modulate_job_tasks(session_check, module_task_list, job_tmpname)
+            for i in module_depend_key_list:
+                import_dep = "http://localhost:9000/api/add_dependency"
+                for j in data_module['dependencies'][i]:
+
+                    res = session_check.post(import_dep,
+                                             {"job_name": job_tmpname,
+                                              "from_task_name": i,
+                                              "to_task_name": j})
+                    if res.status_code != 200:
+                        print "Error: dependencies中存在循环依赖, 请检查依赖性"
+                        sys.exit(1)
+        finally:
+            try_to_recycle_job(session_check, job_tmpname)
+
+
+def randomword(length):
+
+    return ''.join(random.choice(string.lowercase) for i in range(length))
+
+
+def try_to_recycle_job(session_check, job_tmpname):
+    """用于依赖性检测：回收测试job"""
+    url = "http://localhost:9000/api/delete_job"
+    session_check.post(url, {"job_name": job_tmpname})
+    session_check.close()
+
+
+def try_to_modulate_job_tasks(sess, module_task_list, job_tmpname):
+    import_job_url = "http://localhost:9000/api/add_job"
+    import_task_url = "http://localhost:9000/api/add_task_to_job"
+    sess.post(import_job_url, {"job_name": job_tmpname})
+    for i in module_task_list:
+        sess.post(import_task_url,
+                         {"job_name": job_tmpname,
+                          "task_name": i,
+                          "task_command": "echo 1"})
+
 
 
 def get_server_host_list():
@@ -173,13 +221,19 @@ def check_tasks_item_if_str(data,args):
             print u"Error: u\"" + arg + u"\" 字段类型必须是字符串"
             sys.exit(1)
 
-def check_if_list(data,args):
-    """检查tasks类型是否为列表"""
+def check_if_list_dict(data,args):
+    """检查tasks类型是否为列表,并且列表内的每个元素必须是字典"""
     for arg in args:
         if type(data[arg]) != list:
             print u"u'"+arg+"': ",data[arg]
             print "Error: ", arg, "字段类型必须是列表"
             sys.exit(1)
+    for i in data['tasks']:
+        if type(i) != dict:
+            print u"u'"+arg+"': ",data[arg]
+            print "Error: ", arg, "的列表内的item必须是字典"
+            sys.exit(1)
+
 
 
 def check_if_int(data,args):
@@ -288,25 +342,7 @@ def check_input_file(data_module):
     9、hostname要在服务端存在。
     10,没有在-t指定的task必须要有hostname，并且hostname必须存在于服务器中
     """
-    module_key_list = data_module.keys()
-    # 检查模块键列表的重复性
-    check_repeat(str(module_key_list),module_key_list)
-    list_ = ["name","tasks","cron_schedule","dependencies","notes"]
-    list_2 = ["name","tasks","cron_schedule","notes"]
-    # 检查模块中键的合法性：dependencies可选，其他的都要一样
-    check_issub(module_key_list,list_)
-    if len(module_key_list) != len(list_):
-        if not check_issub(module_key_list,list_):
-            print "模块的'name','cron_schedule','notes','tasks'键必须有并且不能重复，'dependencies'可选"
-            sys.exit(1)
-    elif set(module_key_list) != set(list_2):
-            print "模块的'name','cron_schedule','notes','tasks'键必须有并且不能重复，'dependencies'可选"
-            sys.exit(1)
-    else:
-        pass
-
-    if "dependencies" in module_key_list:
-        module_depend_key_list
+    pass
 
 
 def integration(module_tasks_iter,data_module):
@@ -402,25 +438,6 @@ def decode_import_json(json_doc, transformers=None):
         return dct
 
     return loads(json_doc, object_hook=custom_decoder)
-
-
-def check_list_be_same(list_1, list_2):
-    """这个函数目前暂时作废"""
-
-    list_1.sort()
-    list_2.sort()
-
-    if list_1 != list_2:
-        list_1.remove(u'dependencies')
-        list_2.remove(u'dependencies')
-        print "Error: job必备字段： ",
-        print list_2,
-        print "'dependencies' 字段可选"
-        print "你的字段列表： ",
-        print list_1
-        #print u"你的字段列表：" + str(list_1.remove('dependencies'))
-        print u"请纠正相应字段."
-        sys.exit(1)
 
 
 def get_unchanged_task_id(module_tasks_iter, data_module, task_list):
@@ -600,12 +617,7 @@ def jsonalize(data_real):
 
         session = requests.session()
 
-        try:
-            session.post('http://localhost:9000/do-login', {"password": "dagobah"})
-        except requests.exceptions.ConnectionError, err:
-            print str(err)
-            print "发送终止"
-            sys.exit(1)
+        try_to_login(session)
 
         import_url = "http://localhost:9000/jobs/import"
 
@@ -619,6 +631,15 @@ def jsonalize(data_real):
         session.close()
         file_.close()
         os.remove(filename)
+
+
+def try_to_login(session):
+        try:
+            session.post('http://localhost:9000/do-login', {"password": "dagobah"})
+        except requests.exceptions.ConnectionError, err:
+            print str(err)
+            print "连接失败，发送终止"
+            sys.exit(1)
 
 
 def usage():
