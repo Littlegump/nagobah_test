@@ -128,7 +128,6 @@ def main():
         else:
             assert False, "unhandled option"
 
-    print "Error: unkown option!"
     if flag_i != 1:
         print "Error: 命令格式错误，必须使用\"-i\"指定模板文件."
         print "Use \"nagobah -h\" for more help!"

@@ -645,8 +645,9 @@ def try_to_login(session):
 def usage():
     print """python dagopost.py <options> <args>
         -i | --input-file = <jsonfile>
-        -h | --host-file = <hostfile>
-        -t | --task-to-distribute = <tasks>"""
+        -H | --host-file = <hostfile>
+        -t | --task-to-distribute = <tasks>
+        -h | --help to get help """
 
 
 def trans_file_to_list(filename):
