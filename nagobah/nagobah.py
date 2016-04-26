@@ -213,3 +213,6 @@ def main():
 
     # init session and post data to server
     jsonalize(data_real)
+
+if __name__ == "__main__":
+    main()
