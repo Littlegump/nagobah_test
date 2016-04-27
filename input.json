@@ -16,20 +16,19 @@
     },
     {
       "name": "end",
-      "hostname": "slave3",
+      "hostname": "slave1",
       "command": "echo \"nothing\""
     }
   ],
-  "notes": "splist3",
-  "name": "asdf",
+  "notes": "this is a test",
+  "name": "132",
   "dependencies": {
     "copy":[
       "print"
     ],
     "print":[
       "end"
-    ],
-    "end":[]
+    ]
   },
-  "cron_schedule": "* * * * *"
+  "cron_schedule": "* */2 * * *"
 }

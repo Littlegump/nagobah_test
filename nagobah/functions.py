@@ -177,10 +177,11 @@ def get_server_job_name():
 
     client = pymongo.MongoClient('mongodb://localhost', 27017)
     db = client['dagobah']
-    collect = db['dagobah_job']
+    collect = db['dagobah']
     l1 = []
     for item in collect.find():
-        l1.append(item['name'])
+        for task in item['jobs']:
+            l1.append(task['name'])
     return l1
 
 
@@ -242,7 +243,7 @@ def check_if_int(data,args):
     for arg in args:
         if type(data[arg]) != int:
             print data
-            print u"Error: u\"" + arg + u"\" 字段类型必须是数字"
+            print u"Error: u\"" + arg + u"\" 字段类型必须是整数"
             sys.exit(1)
 
 def check_soft_hard_hostname(module_tasks_iter, data_module, task_list, hosts):
@@ -309,6 +310,8 @@ def check_tasks_required_key(data_module, module_tasks_iter):
             print data_module['tasks'][i]
             print "Error: 该任务缺少command字段!"
             sys.exit(1)
+        check_tasks_item_if_null(data_module['tasks'][i],['name','command'])
+        check_tasks_item_if_str(data_module['tasks'][i],['name','command'])
 
 def check_schedule_syntax(data_module):
     """check if the item is matching cron syntax"""
@@ -325,7 +328,7 @@ def check_schedule_syntax(data_module):
 
     if not len(list_schedule) == 5:
         print "\"cron_schedule\": \"", string_, "\""
-        print "Error: schedule的格式有误，至少有5个字段"
+        print "Error: schedule的格式有误，应该有5个字段"
         sys.exit(1)
 
 
