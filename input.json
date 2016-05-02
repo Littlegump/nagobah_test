@@ -2,7 +2,7 @@
   "tasks": [
     {
       "soft_timeout": 1,
-      "name": "copy",
+      "name": "1",
       "hard_timeout": 2,
       "hostname": "slave1",
       "command": "echo 'task1.txt'"
@@ -10,24 +10,32 @@
     {
       "soft_timeout": 1,
       "hard_timeout": 2,
-      "name": "print",
+      "name": "2",
       "command": "echo 1",
-      "hostname": "slave1"
+      "hostname": "slave2"
     },
     {
-      "name": "end",
-      "hostname": "slave1",
+      "name": "3",
+      "hostname": "slave3",
+      "command": "echo \"nothing\""
+    },
+    {
+      "name": "4",
+      "hostname": "slave4",
       "command": "echo \"nothing\""
     }
   ],
   "notes": "this is a test",
-  "name": "132",
+  "name": "    1dasf  ",
   "dependencies": {
-    "copy":[
-      "print"
+    "1":[
+      "2"
     ],
-    "print":[
-      "end"
+    "2":[
+      "3"
+    ],
+    "3":[
+      "4"
     ]
   },
   "cron_schedule": "* */2 * * *"

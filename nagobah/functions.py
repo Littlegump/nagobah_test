@@ -8,6 +8,7 @@ import pymongo
 import random
 import string
 from json import dump, load, loads
+import re
 
 
 def check_job_name_overwrite(data_module):
@@ -171,6 +172,15 @@ def check_job_required_key(data_module, flag_dep):
             print u"u'" + i + u"' ",
         sys.exit()
 
+def check_job_name_not_start_with_digit(data_module, input_file):
+    name = data_module['name']
+    re_flag = re.search('^[a-zA-Z_]', name)
+    if re_flag is None:
+        print u"\'name\': " + u"\'" + data_module['name'] + u"\'"
+        print "Error: ", input_file, "的name字段只接受字母和下划线开头"
+        sys.exit(1)
+    else:
+        pass
 
 def get_server_job_name():
     """ 获取dagobah服务端的job_name列表"""
