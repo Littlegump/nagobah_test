@@ -1,8 +1,8 @@
 MANIFEST.in
-README.txt
-nagobah.py
+setup.cfg
 setup.py
 nagobah/__init__.py
+nagobah/functions.py
 nagobah/nagobah.py
 nagobah.egg-info/PKG-INFO
 nagobah.egg-info/SOURCES.txt
