@@ -10,10 +10,12 @@ import re
 from json import dump, load, loads
 from getopt import getopt, GetoptError
 from functions import *
+from pprint import pprint
 
 
 def check_validation(
-        data_module, task_string, distri_file,
+        #  data_module, task_string, distri_file,
+        data_module, task_string, hosts,
         host_list, input_file, module_tasks_iter,
         task_list,flag_dep):
     """
@@ -27,16 +29,10 @@ def check_validation(
     """
 
     # 获取服务端host列表
-    hosts = get_server_host_list()
+    # hosts = get_server_host_list()
 
     # -t和hostlist的重复性测试
     check_repeat(u"-t指定的name列表: " + task_string, task_list)
-
-    # -h指定的文件的重复检测
-    check_repeat(distri_file, host_list)
-
-    # -h指定的文件在服务端是否存在
-    check_host_exist_in_server(hosts, host_list, distri_file)
 
     #---------检查job必备键,及其job键列表的重复性-----------------
 
@@ -87,14 +83,19 @@ def main():
     flag_i = 0
     flag_h = 0
     flag_t = 0
+    flag_h_f = 0
+    flag_h_r = 0
+    flag_f1_r0 = 0
+    flag_f0_r1 = 0
 
     try:
         opts, args = getopt(
-            sys.argv[1:], 'i:t:H:h',
+            sys.argv[1:], 'i:t:Hh',
             [
                 'input-file=',
                 'task-to-distribute=',
-                'host-file=',
+                'fname=',
+                'repr=',
                 'help'
                 ])
     except GetoptError as err:
@@ -109,9 +110,14 @@ def main():
         if opt in ("--input-file", "-i"):
             input_file = value
             flag_i = 1
-        elif opt in ("--host-file", "-H"):
-            distri_file = value
+        elif opt in ("-H"):
             flag_h = 1
+        elif opt in ("--fname"):
+            distri_file = value
+            flag_h_f = 1
+        elif opt in ("--repr"):
+            distri_repr = value
+            flag_h_r = 1
         elif opt in ("--task-to-distribute", "-t"):
             task_string = value
             flag_t = 1
@@ -127,9 +133,18 @@ def main():
         sys.exit(1)
 
     if flag_h != 1:
-        print "Error: 命令格式错误，必须使用\"-H\"指定分布主机名."
+        print "Error: 命令格式错误，必须使用\"-H\"指定分布主机(提供两种方式--fname和--repr)."
         print "Use \"nagobah -h\" for more help!"
         sys.exit(1)
+    else:
+        if flag_h_f == 1 and flag_h_r == 0:
+            flag_f1_r0 = 1
+        elif flag_h_f == 0 and flag_h_r == 1:
+            flag_f0_r1 = 1
+        else:
+            print "--repr和--fname只能且必须使用一个"
+            print "Use \"nagobah -h\" for more help!"
+            sys.exit(1)
 
     try:
         inputfile = open(input_file, 'rb')
@@ -153,7 +168,19 @@ def main():
     task_list = [unicode(x, 'utf-8') for x in task_list]
 
     #  获取要分布的主机名的列表
-    host_list = trans_file_to_list(distri_file)
+    #  host_list = trans_file_to_list(distri_file)
+
+    # 获取服务端host列表
+    hosts = get_server_host_list()
+
+    if flag_f1_r0 == 1:
+        host_list = trans_file_to_list(distri_file)
+        # -h指定的文件的重复检测
+        check_repeat(distri_file, host_list)
+        # -h指定的文件在服务端是否存在
+        check_host_exist_in_server(hosts, host_list, distri_file)
+    else:
+        host_list = filter_hosts_by_repr(hosts, distri_repr)
 
     #host_list = [unicode(x, 'utf-8') for x in host_list]
     host_iter = range(len(host_list))
@@ -168,9 +195,13 @@ def main():
         data_module[u'dependencies'] = {}
         flag_dep = 0
 
+    # 如果输入的-H是文件的话就先去检查文件是否符合标准
+    # 否则就应该是repr，直接执行下面步骤就行了,现在讲所有的distri_file剥离出来
+
     # check validation
     check_validation(
-        data_module, task_string, distri_file,
+        #  data_module, task_string, distri_file,
+        data_module, task_string, hosts,
         host_list, input_file, module_tasks_iter,
         task_list,flag_dep)
 

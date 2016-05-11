@@ -2,41 +2,35 @@
   "tasks": [
     {
       "soft_timeout": 1,
-      "name": "1",
+      "name": "t1",
       "hard_timeout": 2,
       "hostname": "slave1",
-      "command": "echo 'task1.txt'"
+      "command": "echo 'this is task 1'"
     },
     {
       "soft_timeout": 1,
       "hard_timeout": 2,
-      "name": "2",
-      "command": "echo 1",
-      "hostname": "slave2"
+      "name": "t2",
+      "command": "echo \"this is task2\"",
+      "hostname": "m@slave2"
     },
     {
-      "name": "3",
-      "hostname": "slave3",
-      "command": "echo \"nothing\""
+      "name": "t3",
+      "hostname": "m@slave3",
+      "command": "echo \"nothing in this task3\""
     },
     {
-      "name": "4",
-      "hostname": "slave4",
-      "command": "echo \"nothing\""
+      "name": "t4",
+      "hostname": "m@slave4",
+      "command": "echo 'this is task4'"
     }
   ],
   "notes": "this is a test",
-  "name": "    1dasf  ",
+  "name": "Job_A",
   "dependencies": {
-    "1":[
-      "2"
-    ],
-    "2":[
-      "3"
-    ],
-    "3":[
-      "4"
-    ]
+    "t1": ["t2"],
+    "t2": ["t3"],
+    "t3":["t4"]
   },
-  "cron_schedule": "* */2 * * *"
+  "cron_schedule": "1 2 * * *"
 }

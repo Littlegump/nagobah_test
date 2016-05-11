@@ -7,9 +7,11 @@ import os
 import pymongo
 import random
 import string
+import sre_constants
 from json import dump, load, loads
-import re
-
+from re import search
+from termcolor import colored
+from pprint import PrettyPrinter
 
 def check_job_name_overwrite(data_module):
     """如果name在job_name_list中就做覆盖判断"""
@@ -19,16 +21,14 @@ def check_job_name_overwrite(data_module):
 
     if data_module['name'] in job_name_list:
 
-        print "Warning: Your Job name is conflict with server's job_name_list, Sure to overwrite？(Y/n)"
-
-        choice = raw_input("\"Y\" to keep go,\"n\" to stop and quit:")
+        print colored("Warning: Your Job name is conflict with server's job_name_list, Sure to overwrite？(Y/n)", 'red')
 
         try:
+            choice = raw_input("\"Y\" to keep go,\"n\" to stop and quit:")
             while choice.lower() != "y" and choice.lower() != "n":
                 choice = raw_input("\"Y\" to keep go,\"n\" to stop and quit:")
-        except KeyboardInterrupt, err:
-            print str(err)
-            sys.exit(0)
+        except KeyboardInterrupt:
+            sys.exit(1)
 
         if choice.lower() == "n":
             print "quiting..."
@@ -37,6 +37,34 @@ def check_job_name_overwrite(data_module):
         elif choice.lower() == "y":
             pass
 
+
+def filter_hosts_by_repr(hosts, distri_repr):
+    host_list = []
+    for host in hosts:
+        try:
+            if search(distri_repr, host) != None:
+                host_list.append(host)
+        except sre_constants.error, err:
+            print "输入的正则表达式语法有误"
+            print str(err)
+            sys.exit(1)
+    print colored('指定要分布的主机列表为:', 'blue')
+    pp = PrettyPrinter(indent=4)
+    pp.pprint(host_list)
+    if host_list == []:
+        print colored("要分布的主机列表不能为空!!!", 'red')
+        sys.exit(1)
+    try:
+        choice =  raw_input(colored("这是筛选出来的将要分布的主机，请确认(Y/n)", 'red'))
+        while choice.lower() != 'y':
+            if choice.lower() == 'n':
+                sys.exit(0)
+            else:
+                choice = raw_input("Y确认，n退出重新筛选(Y/n):")
+    except KeyboardInterrupt:
+            sys.exit(1)
+
+    return host_list
 
 def check_dependencies_valid(data_module,input_file,module_task_list):
     """
@@ -190,7 +218,7 @@ def check_job_required_key(data_module, flag_dep):
 
 def check_job_name_not_start_with_digit(data_module, input_file):
     name = data_module['name']
-    re_flag = re.search('^[a-zA-Z_]', name)
+    re_flag = search('^[a-zA-Z_]', name)
     if re_flag is None:
         print u"\'name\': " + u"\'" + data_module['name'] + u"\'"
         print "Error: ", input_file, "的name字段只接受字母和下划线开头"
@@ -640,7 +668,8 @@ def try_to_login(session):
 def usage():
     print """nagobah <options>
         -i | --input-file = <jsonfile>          (必备)指定要导入的json模板
-        -H | --host-file = <hostfile>           (必备)指定任务要分配到的User(主机)
+        -H | --fname = <hostfile>           (必备)指定任务要分配到的User(主机)
+             --repr = <repr>                (要么用-H --fname=, 要么用-H --repr=)
         -t | --task-to-distribute = [tasks]     (可选)指定要做分布式的任务name,逗号隔开
         -h | --help to get help """
 
@@ -651,9 +680,14 @@ def trans_file_to_list(filename):
         file_ = open(filename, 'rb')
         list_ = [line[:-1] for line in file_]
         list_ = [str(i).strip() for i in list_]
+        list_ = [i for i in list_ if i != '']
     except IOError, err:
         print "打开文件失败" + str(err)
     finally:
         file_.close()
+
+    if list_ == []:
+        print filename,"不能为空"
+        sys.exit(1)
 
     return list_
