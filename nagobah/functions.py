@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # _*_ coding: utf-8
 
+import yaml
 import sys
 import requests
 import os
@@ -229,7 +230,11 @@ def check_job_name_not_start_with_digit(data_module, input_file):
 def get_server_job_name():
     """ 获取dagobah服务端的job_name列表"""
 
-    client = pymongo.MongoClient('mongodb://localhost', 27017)
+    stream = file('/root/.dagobahd.yml', 'rb')
+    data = yaml.load(stream)
+    host = data['MongoBackend']['host']
+    port = data['MongoBackend']['port']
+    client = pymongo.MongoClient('mongodb://'+host, port)
     db = client['dagobah']
     collect = db['dagobah']
     l1 = []
