@@ -38,7 +38,7 @@ def check_validation(
 
 
     # 检查job必备的四个键和一个可选键 "dependencies"
-    check_job_required_key(data_module, flag_dep)
+    # check_job_required_key(data_module, flag_dep)
     check_job_name_not_start_with_digit(data_module, input_file)
 
     # 四键('name', 'cron_schedule', 'tasks', 'notes') 不为空检查， 为str检查,也不能为字典
@@ -74,7 +74,7 @@ def check_validation(
     # 2、值不能依赖键，就是说不能自我依赖
     # 3、键名列表必须是已经存在的task_name
     # 4、循环依赖还没有搞定
-    check_dependencies_valid(data_module, input_file, module_task_list)
+    # check_dependencies_valid(data_module, input_file, module_task_list)
 
     # 如果name在job_name_list中就做覆盖判断
     check_job_name_overwrite(data_module)

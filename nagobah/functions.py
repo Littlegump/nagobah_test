@@ -116,7 +116,7 @@ def check_dependencies_valid(data_module,input_file,module_task_list):
         job_tmpname = randomword(10)
         try_to_modulate_job_tasks(session_check, module_task_list, job_tmpname)
         # 用于检测schedule语法的正确性"""
-        try_to_modulate_job_schedule(data_module, session_check, job_tmpname)
+        # try_to_modulate_job_schedule(data_module, session_check, job_tmpname)
 
         for i in module_depend_key_list:
             import_dep = "http://localhost:9000/api/add_dependency"
@@ -500,6 +500,8 @@ def init_data_real(data_module):
     data_real["name"] = data_module['name']
 
     data_real["cron_schedule"] = data_module['cron_schedule']
+
+    data_real['timezone'] = data_module['timezone']
 
     return data_real
 
