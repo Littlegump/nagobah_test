@@ -234,7 +234,12 @@ def get_server_job_name():
     data = yaml.load(stream)
     host = data['MongoBackend']['host']
     port = data['MongoBackend']['port']
-    client = pymongo.MongoClient('mongodb://'+host, port)
+    try:
+        client = pymongo.MongoClient('mongodb://'+host, port)
+    except pymongo.errors.ConnectionFailure, err:
+        print "mongodb连接不上: "
+        print str(err)
+        sys.exit(1)
     db = client['dagobah']
     collect = db['dagobah']
     l1 = []
