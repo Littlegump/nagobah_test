@@ -13,6 +13,7 @@ from json import dump, load, loads
 from re import search
 from termcolor import colored
 from pprint import PrettyPrinter
+import pytz
 
 def check_job_name_overwrite(data_module):
     """如果name在job_name_list中就做覆盖判断"""
@@ -110,6 +111,7 @@ def check_dependencies_valid(data_module,input_file,module_task_list):
             for i in set_1:
                 print u"u'" + i + u"' ",
             sys.exit(1)
+
     try:
         session_check = requests.session()
         try_to_login(session_check)
@@ -188,16 +190,18 @@ def check_host_exist_in_server(hosts, host_list, distri_file):
             sys.exit(1)
 
 
-def check_job_required_key(data_module, flag_dep):
-    """ 检查job必备的四个键和一个可选键 dependencies"""
+def check_job_required_key(data_module, flag_dep, flag_tz):
+    """ 检查job必备的四个键和两个可选键 dependencies, timezone"""
 
     module_key_list = data_module.keys()
-    list_ = [u"name",u"tasks",u"cron_schedule",u"dependencies",u"notes"]
+    list_ = [u"name", u"tasks", u"cron_schedule", u"dependencies", u"notes", u"timezone"]
 
     if not check_issub(module_key_list,list_):
-        print "模板必备字段: ", list_, " ,其中'dependencies'字段可选"
+        print "模板必备字段: ", list_, " ,其中'dependencies','timezone'字段可选"
         if flag_dep == 0:
             module_key_list.remove(u'dependencies')
+        if flag_tz == 0:
+            module_key_list.remove(u"timezone")
         print "你的字段列表： ", module_key_list
         s1 = set(module_key_list).difference(set(list_))
         print "Error: 未知字段： ",
@@ -633,7 +637,7 @@ def add_empty_job():
     return dict_
 
 
-def jsonalize(data_real):
+def post_to_server(data_real):
     '''创建连接dagobah的回话，然后开始导入数据'''
     filename = 'jiushizheige.json'
 
@@ -703,3 +707,9 @@ def trans_file_to_list(filename):
         sys.exit(1)
 
     return list_
+
+def check_if_in_all_tzs(data_module):
+    if data_module[u'timezone'] not in pytz.all_timezones:
+        print colored("Error: timezone error!!!", 'red')
+        print u"Your timezone: \"" + data_module[u'timezone'] + u"\" is not an valid timezone."
+        sys.exit(1)

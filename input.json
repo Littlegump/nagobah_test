@@ -32,6 +32,5 @@
     "t2": ["t3"],
     "t3":["t4"]
   },
-  "cron_schedule": "15 10 * * *",
-  "timezone": "Europe/Berlin"
+  "cron_schedule": "17 10 * * *"
 }

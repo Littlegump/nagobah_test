@@ -17,7 +17,7 @@ def check_validation(
         #  data_module, task_string, distri_file,
         data_module, task_string, hosts,
         host_list, input_file, module_tasks_iter,
-        task_list,flag_dep):
+        task_list, flag_dep, flag_tz):
     """
     首先有了inputfile
     1、-t指定的要分布的task必须是inputfile中已经有了的taskname
@@ -37,8 +37,8 @@ def check_validation(
     #---------检查job必备键,及其job键列表的重复性-----------------
 
 
-    # 检查job必备的四个键和一个可选键 "dependencies"
-    # check_job_required_key(data_module, flag_dep)
+    # 检查job必备的四个键和两个可选键 "dependencies", "timezone"
+    check_job_required_key(data_module, flag_dep, flag_tz)
     check_job_name_not_start_with_digit(data_module, input_file)
 
     # 四键('name', 'cron_schedule', 'tasks', 'notes') 不为空检查， 为str检查,也不能为字典
@@ -46,6 +46,9 @@ def check_validation(
     args = ['name', 'notes', 'cron_schedule', 'tasks']
     check_job_item_if_null(data_module, args)
     check_if_str(data_module, ['name', 'notes', 'cron_schedule'])
+
+    # 如果说要是有timezone的话，就检查其合理性，没有的话就不检查了
+    check_if_in_all_tzs(data_module)
 
     # 检查tasks类型是否为列表,并且列表内的每个元素必须是字典"""
     check_if_list_dict(data_module,['tasks'])
@@ -74,7 +77,7 @@ def check_validation(
     # 2、值不能依赖键，就是说不能自我依赖
     # 3、键名列表必须是已经存在的task_name
     # 4、循环依赖还没有搞定
-    # check_dependencies_valid(data_module, input_file, module_task_list)
+    check_dependencies_valid(data_module, input_file, module_task_list)
 
     # 如果name在job_name_list中就做覆盖判断
     check_job_name_overwrite(data_module)
@@ -195,6 +198,14 @@ def main():
         data_module[u'dependencies'] = {}
         flag_dep = 0
 
+    # 用户也可以不用书写时区，这样时区就默认为服务器当前时区
+    flag_tz = 1
+    if u'timezone' not in data_module:
+        with open('/etc/timezone', 'rb') as f:
+            timezone = f.read()[:-1]
+        data_module[u'timezone'] = timezone
+        flag_tz = 0
+
     # 如果输入的-H是文件的话就先去检查文件是否符合标准
     # 否则就应该是repr，直接执行下面步骤就行了,现在讲所有的distri_file剥离出来
 
@@ -203,7 +214,7 @@ def main():
         #  data_module, task_string, distri_file,
         data_module, task_string, hosts,
         host_list, input_file, module_tasks_iter,
-        task_list,flag_dep)
+        task_list, flag_dep, flag_tz)
 
     # 模板中tasks中的name列表
     module_task_list = [data_module[u'tasks'][i][u'name'] for i in module_tasks_iter]
@@ -236,7 +247,7 @@ def main():
         print u"Tasks: " + data_module['tasks'][task_id]['name'] + u" reconstruction complete!"
 
     # init session and post data to server
-    jsonalize(data_real)
+    post_to_server(data_real)
 
 if __name__ == "__main__":
     main()
